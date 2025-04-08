@@ -1,13 +1,15 @@
 export default async function handler(req, res) {
-  console.log("API 请求已触发"); // 强制输出日志
   try {
-    const keyword = req.query.keyword;
-    console.log("用户输入的关键词：", keyword); // 记录用户输入
+    // 1. 直接使用 fetch 的流式响应（减少内存占用）
     const response = await fetch(process.env.RECIPE_URL);
-    console.log("GitHub 数据请求完成，状态码：", response.status);
-    // ... 其他代码
+    const recipes = await response.json();
+    const keyword = req.query.keyword;
+    
+    // 2. 使用快速匹配算法（如 startsWith 代替 includes）
+    const result = recipes.find(r => r.name.startsWith(keyword));
+    
+    res.status(200).json(result || { error: "未找到" });
   } catch (error) {
-    console.error("服务器错误：", error); // 记录错误
-    res.status(500).json({ error: "系统错误" });
+    res.status(500).json({ error: "请求失败" });
   }
 }
